@@ -1,0 +1,25 @@
+boku: # 这个词的内部标识
+  spelling: "仆"
+  pronunciation: boku
+  meaning: 我,男性,单数
+  etymo: default
+
+ikuikuikuiku:
+  spelling: 一个一个一个一个
+  pronunciation: ikuikuikuiku
+  meaning:
+    - 强调"一个"物体
+    - 拟声词,标识被撅了而非常痛苦
+  etymo : 
+    duplicate: #它是由另一个词重复而来
+      from: iku #源词的 id
+pana:
+  spelling: "花"
+  meaning: "flower"
+  pronunciation: "pana"
+
+apugi:
+  spelling: "扇"
+  meaning: "扇子"
+  pronunciation: "afugi"
+

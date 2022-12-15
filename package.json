@@ -1,0 +1,14 @@
+{
+  "name": "linguistic_converter",
+  "version": "1.0.0",
+  "description": "一个字典格式及转换器,用于模拟语言学变化",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "yaml": "^2.1.3"
+  }
+}
