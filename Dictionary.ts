@@ -14,7 +14,7 @@ interface PrintWord{
 }
 
 export class Dictionary extends Map<string,Word>{
-	static from_yaml(source : string){
+	static from_yaml(source : string):Dictionary{
 		const parsed = YAML.parse(source)
 		var words_iterator = function*(){
 			for(const id in parsed){
@@ -62,7 +62,9 @@ export type DictConverter = (source:Dictionary) => Dictionary;
  * 一个制作词演化器的辅助函数  
  * 每个单词只变化发音
  */
-export function pronunciation_only(ipa_converter :(source:string)=>string ): WordConverter{
+export function pronunciation_only(
+	ipa_converter :(source:string)=>string 
+): WordConverter{
 	return function(word : Word){
 		//SB语言连深拷贝都没有
 		var res = JSON.parse(JSON.stringify(word));
@@ -88,7 +90,7 @@ export function each_word(word_converter:WordConverter):DictConverter{
  * 把多个转换器首尾连接起来
  * @param converters 从前到后写出converter
  */
-export function Sequential(...converters : DictConverter[]): DictConverter{
+export function sequential(...converters : DictConverter[]): DictConverter{
 	return (source : Dictionary)=> converters.reduce(
 		(former, converter) => converter(former),
 		source

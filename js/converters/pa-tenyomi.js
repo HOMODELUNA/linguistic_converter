@@ -4,7 +4,7 @@ exports.pa_tenyomi = void 0;
 const Dictionary_1 = require("../Dictionary");
 //字符串的音变
 function ipa_pa_tenyomi(ipa, ratio = 1.0) {
-    if (ipa.match("fɸp") || Math.random() <= ratio) {
+    if (ipa.match("fɸp") && Math.random() <= ratio) {
         return ipa.replace("f", "h")
             .replace("ɸ", "f")
             .replace("p", "ɸ");

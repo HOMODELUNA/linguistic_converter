@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Sequential = exports.each_word = exports.pronunciation_only = exports.Dictionary = void 0;
+exports.sequential = exports.each_word = exports.pronunciation_only = exports.Dictionary = void 0;
 const yaml_1 = __importDefault(require("yaml"));
 class Dictionary extends Map {
     static from_yaml(source) {
@@ -37,11 +37,17 @@ class Dictionary extends Map {
         const hash = new Map(yielder(this));
         return yaml_1.default.stringify(hash);
     }
+    /**
+     * 	把自己送进转换器中,组成一个新字典
+     */
+    into(converter) {
+        return converter(this);
+    }
 }
 exports.Dictionary = Dictionary;
 /**
  * 一个制作词演化器的辅助函数
- * 每个单词做同样的变化,由此组成一个字典
+ * 每个单词只变化发音
  */
 function pronunciation_only(ipa_converter) {
     return function (word) {
@@ -71,7 +77,7 @@ exports.each_word = each_word;
  * 把多个转换器首尾连接起来
  * @param converters 从前到后写出converter
  */
-function Sequential(...converters) {
+function sequential(...converters) {
     return (source) => converters.reduce((former, converter) => converter(former), source);
 }
-exports.Sequential = Sequential;
+exports.sequential = sequential;
