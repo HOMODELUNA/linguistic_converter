@@ -1,7 +1,8 @@
 
-import * as Dict from "./Dictionary"
 import { pa_tenyomi } from "./converters/pa-tenyomi"
 import grimm_verner from "./converters/grimm_verner"
+import great_vowel_shift from "./converters/great_vowel_shift"
+import { Dictionary, DictConverter, select, equally, sequential } from "./Dictionary"
 const example_dict = '\n\
 boku: # 这个词的内部标识\n\
   spelling: "仆"\n\
@@ -28,22 +29,30 @@ apugi:\n\
   meaning: "扇子"\n\
   pronunciation: "afugi"\n\
 ' 
-console.log("hello ts I'm index")
 
-console.log("borrowed from module hello: ")
 
-const dict1 = Dict.Dictionary.from_yaml(example_dict)
-
+const dict1 = Dictionary.from_yaml(example_dict)
 console.log(dict1)
-const pa_tenyomi_converter = pa_tenyomi(1.0)
-const grimm_verner_converter = grimm_verner(1.0)
+console.log("源字典是:")
+console.log(dict1.to_yaml())
+function test_one(name:string,converter : DictConverter){
+	const cvted_dict = converter(dict1)
+	console.log(`经过 ${name} 的字典是:`)
+	console.log(cvted_dict.to_yaml())
+	console.log("")
+}
 
-const sequenced = Dict.sequential(grimm_verner_converter,pa_tenyomi_converter)
-
-const dict2 = pa_tenyomi_converter(dict1)
-console.log(dict2)
-console.log(dict2.to_yaml())
-
-const dict3 = sequenced(dict1)
-console.log(dict3)
-console.log(dict3.to_yaml())
+test_one("ハ行转呼",pa_tenyomi(1.0))
+test_one("格林-维尔纳定律",grimm_verner(1.0))
+test_one("元音大回环",great_vowel_shift(1.0))
+//串联
+test_one("元音大回环然后是ハ行转呼",
+	sequential(great_vowel_shift(1.0),pa_tenyomi(1.0))
+)
+//并联
+test_one("元音大回环和格林-维尔纳定律各1/2",
+	select(equally(
+		great_vowel_shift(1.0),
+		grimm_verner(1.0)
+	))
+)

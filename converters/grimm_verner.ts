@@ -1,4 +1,4 @@
-import { DictConverter, each_word, pronunciation_only } from "../Dictionary"
+import { DictConverter, WordConverter,each_word, pronunciation_only } from "../Dictionary"
 const TRANSFORMS = [
 	["bʱ", "b", "p", "φ", "f"],
 	["dʱ", "d", "t", "θ"],
@@ -17,8 +17,8 @@ function find_next(c: string): string | atEnd | null {
 	return row[index + 1]
 }
 
-function str_grimm_verner(ipa: string, ratio: number, accent_pos: AccentPredicate): string {
-	var replaced_mono_consonants = Array.from(ipa).reduce((prev, current, index) => {
+function ipa_grimm_verner(ipa: string, ratio: number, accent_pos: AccentPredicate): string {
+	const replaced_mono_consonants = Array.from(ipa).reduce((prev, current, index) => {
 		const next = find_next(current)
 		if (next == null || Math.random() > ratio) {
 			return prev + current
@@ -31,7 +31,7 @@ function str_grimm_verner(ipa: string, ratio: number, accent_pos: AccentPredicat
 			return prev + next.next
 		}
 		return prev + current
-	})
+	},"")
 	if (ipa.match("[bdg]ʱ") && Math.random() <= ratio) {
 		return ipa.replace("bʱ", "b")
 			.replace("dʱ", "d")
@@ -52,6 +52,20 @@ type AccentPredicate = (ipa: string, pos: number) => boolean
  * @returns 总是为false
  */
 export const no_accent = (ipa: string, pos: number) => false
+
+/**
+ * 格林-维尔纳定律的词版本
+ * @param ratio 
+ * @param accent_pos 
+ * @returns 
+ */
+export function w_grimm_verner(
+	ratio: number = 1.0,
+	accent_pos: AccentPredicate = no_accent
+):WordConverter{
+	const ratioed = (ipa: string) => ipa_grimm_verner(ipa, ratio, accent_pos)
+	return pronunciation_only(ratioed)
+}
 /**
  * 格林定律解释的是印欧语系中的语音演变问题，
  * 主要指从原始印欧语（PIE）向日耳曼语族的变化，
@@ -79,8 +93,7 @@ function grimm_verner(
 	ratio: number = 1.0,
 	accent_pos: AccentPredicate = no_accent
 ): DictConverter {
-	const ratioed = (ipa: string) => str_grimm_verner(ipa, ratio, accent_pos)
-	return each_word(pronunciation_only(ratioed))
+	return each_word(w_grimm_verner(ratio,accent_pos))
 }
 
 export default grimm_verner

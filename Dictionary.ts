@@ -1,4 +1,8 @@
 import YAML from "yaml"
+import{ tuple ,equally,num_select} from "./util";
+
+export {equally}
+
 export interface Word {
 	id : string;
 	spelling : string;
@@ -19,8 +23,7 @@ export class Dictionary extends Map<string,Word>{
 		var words_iterator = function*(){
 			for(const id in parsed){
 				const val = parsed[id] as Word
-				const pair:[string,Word] = [id,val]
-				yield pair
+				yield tuple(id,val)
 			}
 		}
 		return new Dictionary(words_iterator())
@@ -38,8 +41,7 @@ export class Dictionary extends Map<string,Word>{
 					meaning : v.meaning,
 					etymo : v.etymo,
 				}
-				const pair:[string,PrintWord] = [id,entries]
-				yield pair
+				yield tuple(id,entries)
 			}
 		}
 		const hash = new Map<string,PrintWord>(yielder(this))
@@ -78,12 +80,14 @@ export function pronunciation_only(
  * 每个单词做同样的变化,由此组成一个字典
  */
 export function each_word(word_converter:WordConverter):DictConverter{
+	//构造一个迭代器,这个迭代器接受源字典,每次yield的是字典的原值(id)和转换过的value
 	let converted_words = function* (source : Dictionary){
 		for (const [key,value] of source.entries()) {
-			const pair : [string,Word]=[key,word_converter(value)] 
-			yield pair
+			yield tuple(key,word_converter(value))
 		}
 	}
+	// 输出的是一个函数,这个函数
+	// 输入一个字典,输出的是这个字典每个词转换过的结果
 	return (source: Dictionary)=> new Dictionary(converted_words(source));
 }
 /**
@@ -95,6 +99,48 @@ export function sequential(...converters : DictConverter[]): DictConverter{
 		(former, converter) => converter(former),
 		source
 	)
+}
+
+
+/**
+ * 根据输入的若干表达式和权重,产生的词转换器,将每个词按不同的随机性归由各个转换器得来
+ * @param converter_weight 
+ * @returns 
+ */
+export function word_select(...converter_weight : [WordConverter,number][]):WordConverter{
+	return (word:Word) => num_select(Math.random(),converter_weight)(word)
+}
+/**
+ * 根据输入的若干表达式和权重,产生的字典转换器,将每个词按不同的随机性归由各个转换器得来
+ * ### 性能注意
+ * 
+ * 这个函数会对每一个converter都会产生新的字典.这可能会产生比较大的开销.
+ * 如果你有源转换器的word版本,可以用 `each_word(word_select(word_converter_amd_weights))`做同样的事,降低性能开销
+ * @param converter_weight 
+ * @returns 
+ */
+export function select(converter_weight : [DictConverter,number][]):DictConverter{
+	const weights = converter_weight.map(([cvt,w])=>w)
+	const total_weight = weights.reduce((prev,cur)=>prev+cur)
+	if(total_weight != 1) {
+		throw new Error(`各转换器的权重和必须为1,而不是 ${total_weight}`);
+	}
+	return (dict:Dictionary)=>{
+		const results = converter_weight.map(([cvt,w])=>{
+			const pair : [Dictionary,number] = [cvt(dict),w]
+			return pair
+		})
+		function* selected_words(){
+			for(const [id,value] of dict.entries()){
+				const new_value = num_select(Math.random(),results).get(id)
+				if(new_value ==undefined) { 
+					throw new Error(`some dict dont have key: ${id}`)
+				}
+				yield tuple(id,new_value)
+			}
+		}
+		return new Dictionary(selected_words())
+	}
 }
 
 

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.no_accent = void 0;
+exports.w_grimm_verner = exports.no_accent = void 0;
 const Dictionary_1 = require("../Dictionary");
 const TRANSFORMS = [
     ["bʱ", "b", "p", "φ", "f"],
@@ -18,8 +18,8 @@ function find_next(c) {
     }
     return row[index + 1];
 }
-function str_grimm_verner(ipa, ratio, accent_pos) {
-    var replaced_mono_consonants = Array.from(ipa).reduce((prev, current, index) => {
+function ipa_grimm_verner(ipa, ratio, accent_pos) {
+    const replaced_mono_consonants = Array.from(ipa).reduce((prev, current, index) => {
         const next = find_next(current);
         if (next == null || Math.random() > ratio) {
             return prev + current;
@@ -32,7 +32,7 @@ function str_grimm_verner(ipa, ratio, accent_pos) {
             return prev + next.next;
         }
         return prev + current;
-    });
+    }, "");
     if (ipa.match("[bdg]ʱ") && Math.random() <= ratio) {
         return ipa.replace("bʱ", "b")
             .replace("dʱ", "d")
@@ -46,6 +46,17 @@ function str_grimm_verner(ipa, ratio, accent_pos) {
  */
 const no_accent = (ipa, pos) => false;
 exports.no_accent = no_accent;
+/**
+ * 格林-维尔纳定律的词版本
+ * @param ratio
+ * @param accent_pos
+ * @returns
+ */
+function w_grimm_verner(ratio = 1.0, accent_pos = exports.no_accent) {
+    const ratioed = (ipa) => ipa_grimm_verner(ipa, ratio, accent_pos);
+    return (0, Dictionary_1.pronunciation_only)(ratioed);
+}
+exports.w_grimm_verner = w_grimm_verner;
 /**
  * 格林定律解释的是印欧语系中的语音演变问题，
  * 主要指从原始印欧语（PIE）向日耳曼语族的变化，
@@ -70,7 +81,6 @@ exports.no_accent = no_accent;
  * @returns {DictConverter}
  */
 function grimm_verner(ratio = 1.0, accent_pos = exports.no_accent) {
-    const ratioed = (ipa) => str_grimm_verner(ipa, ratio, accent_pos);
-    return (0, Dictionary_1.each_word)((0, Dictionary_1.pronunciation_only)(ratioed));
+    return (0, Dictionary_1.each_word)(w_grimm_verner(ratio, accent_pos));
 }
 exports.default = grimm_verner;

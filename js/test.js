@@ -1,34 +1,12 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const Dict = __importStar(require("./Dictionary"));
 const pa_tenyomi_1 = require("./converters/pa-tenyomi");
 const grimm_verner_1 = __importDefault(require("./converters/grimm_verner"));
+const great_vowel_shift_1 = __importDefault(require("./converters/great_vowel_shift"));
+const Dictionary_1 = require("./Dictionary");
 const example_dict = '\n\
 boku: # 这个词的内部标识\n\
   spelling: "仆"\n\
@@ -55,16 +33,18 @@ apugi:\n\
   meaning: "扇子"\n\
   pronunciation: "afugi"\n\
 ';
-console.log("hello ts I'm index");
-console.log("borrowed from module hello: ");
-const dict1 = Dict.Dictionary.from_yaml(example_dict);
+const dict1 = Dictionary_1.Dictionary.from_yaml(example_dict);
 console.log(dict1);
-const pa_tenyomi_converter = (0, pa_tenyomi_1.pa_tenyomi)(1.0);
-const grimm_verner_converter = (0, grimm_verner_1.default)(1.0);
-const sequenced = Dict.sequential(grimm_verner_converter, pa_tenyomi_converter);
-const dict2 = pa_tenyomi_converter(dict1);
-console.log(dict2);
-console.log(dict2.to_yaml());
-const dict3 = sequenced(dict1);
-console.log(dict3);
-console.log(dict3.to_yaml());
+console.log("源字典是:");
+console.log(dict1.to_yaml());
+function test_one(name, converter) {
+    const cvted_dict = converter(dict1);
+    console.log(`经过 ${name} 的字典是:`);
+    console.log(cvted_dict.to_yaml());
+    console.log("");
+}
+test_one("ハ行转呼", (0, pa_tenyomi_1.pa_tenyomi)(1.0));
+test_one("格林-维尔纳定律", (0, grimm_verner_1.default)(1.0));
+test_one("元音大回环", (0, great_vowel_shift_1.default)(1.0));
+test_one("元音大回环然后是ハ行转呼", (0, Dictionary_1.sequential)((0, great_vowel_shift_1.default)(1.0), (0, pa_tenyomi_1.pa_tenyomi)(1.0)));
+test_one("元音大回环和格林-维尔纳定律各1/2", (0, Dictionary_1.select)((0, Dictionary_1.equally)((0, great_vowel_shift_1.default)(1.0), (0, grimm_verner_1.default)(1.0))));
